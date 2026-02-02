@@ -1,3 +1,3 @@
-const { pool, connectToPostgres } = require('./connectToPostgres');
+const { pool, connectToPostgres } = require('./db');
 
-module.exports = pool;
+module.exports = { pool, connectToPostgres };

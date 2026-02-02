@@ -1,11 +1,14 @@
-var express = require("express");
-var router = express.Router();
-const carController = require("../Controllers/carController")
+const express = require("express");
+const router = express.Router();
+const carController = require("../Controllers/carController");
+const { requireAuthUser } = require("../middlewares/authMiddlewares");
 
-/* GET users listing. */
-
-router.get("/GetAllCars",carController.GetAllCars);
-
-router.post("/createCarWithOwner",carController.createCarWithOwner);
+router.get("/GetAllCars", requireAuthUser, carController.GetAllCars);
+router.post("/createCar", requireAuthUser, carController.createCar);
+router.post("/createCarWithOwner", requireAuthUser, carController.createCarWithOwner);
+router.get("/:id", requireAuthUser, carController.getCarById);
+router.delete("/:id", requireAuthUser, carController.deleteCarById);
+router.post("/buy", requireAuthUser, carController.buyCar);
+router.post("/sell", requireAuthUser, carController.sellCar);
 
 module.exports = router;

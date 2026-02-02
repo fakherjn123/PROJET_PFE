@@ -25,80 +25,41 @@ DROP TABLE IF EXISTS users CASCADE;
 -- ============================================
 -- TABLE UTILISATEURS
 -- ============================================
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'user', -- admin, user, manager
-    
-    -- Informations système
-    device_hostname VARCHAR(255),
-    device_type VARCHAR(50),
-    device_platform VARCHAR(50),
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE
-);
+-- Ajouter les champs CRM à la table users
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS nom VARCHAR(100),
+ADD COLUMN IF NOT EXISTS prenom VARCHAR(100),
+ADD COLUMN IF NOT EXISTS telephone VARCHAR(20),
+ADD COLUMN IF NOT EXISTS mobile VARCHAR(20),
+ADD COLUMN IF NOT EXISTS statut VARCHAR(50) DEFAULT 'Actif',
+ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'Particulier',
+ADD COLUMN IF NOT EXISTS adresse TEXT,
+ADD COLUMN IF NOT EXISTS code_postal VARCHAR(10),
+ADD COLUMN IF NOT EXISTS ville VARCHAR(100);
+
+-- Optionnel : Supprimer la table clients (fais un backup d'abord !)
+DROP TABLE IF EXISTS clients CASCADE;
+DROP TABLE IF EXISTS comptes CASCADE;
+DROP TABLE IF EXISTS adresses CASCADE;
 
 -- ============================================
 -- MODULE CLIENTS
 -- ============================================
-
--- Table principale des clients
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
-    prenom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100),
     email VARCHAR(255) UNIQUE,
     telephone VARCHAR(20),
-    mobile VARCHAR(20),
-    statut VARCHAR(50) DEFAULT 'Prospect', -- Prospect, Client, Actif, Inactif
-    type VARCHAR(50) DEFAULT 'Particulier', -- Particulier, Entreprise
-    
-    -- Entreprise
     raison_sociale VARCHAR(255),
-    siret VARCHAR(20),
-    tva_intracommunautaire VARCHAR(20),
-    
-    -- Commercial
-    remise_pourcentage DECIMAL(5,2) DEFAULT 0,
-    plafond_credit DECIMAL(12,2) DEFAULT 0,
-    delai_paiement INTEGER DEFAULT 30, -- jours
-    
-    -- Système
-    created_by INTEGER REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    notes TEXT
-);
-
--- Comptes clients (pour facturation)
-CREATE TABLE comptes (
-    id SERIAL PRIMARY KEY,
-    client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
-    numero_compte VARCHAR(50) UNIQUE NOT NULL,
-    solde DECIMAL(12,2) DEFAULT 0,
-    solde_du DECIMAL(12,2) DEFAULT 0, -- Montant dû
-    limite_credit DECIMAL(12,2) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Adresses clients
-CREATE TABLE adresses (
-    id SERIAL PRIMARY KEY,
-    client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL, -- Facturation, Livraison, Siège social
-    adresse VARCHAR(255) NOT NULL,
-    complement_adresse VARCHAR(255),
+    statut VARCHAR(50) DEFAULT 'Actif', -- Actif, Prospect, Client
+    adresse VARCHAR(255),
     code_postal VARCHAR(10),
     ville VARCHAR(100),
     pays VARCHAR(100) DEFAULT 'Tunisie',
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================
@@ -485,3 +446,17 @@ INSERT INTO caisse (nom, solde) VALUES
 -- Compte bancaire
 INSERT INTO comptes_bancaires (nom, banque, numero_compte, solde) VALUES
 ('Compte principal', 'BIAT', '1234567890', 50000.00);
+CREATE TABLE cars (
+    id SERIAL PRIMARY KEY,
+    brand VARCHAR(100) NOT NULL,
+    model VARCHAR(100),
+    year INTEGER,
+    matricul VARCHAR(50) UNIQUE,
+    owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_cars_owner ON cars(owner_id);
+CREATE INDEX idx_cars_matricul ON cars(matricul);

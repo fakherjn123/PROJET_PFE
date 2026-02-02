@@ -3,7 +3,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.json('index');
+  res.json({ message: 'Bienvenue sur l\'API BMZ CRM' });
 });
 
 module.exports = router;
