@@ -33,14 +33,34 @@ module.exports.getProduitById = async (req, res) => {
 // Create produit
 module.exports.createProduit = async (req, res) => {
   try {
-    const { reference, nom, description, prix_achat, prix_vente } = req.body;
+    const {
+      reference,
+      nom,
+      description,
+      categorie,
+      prix_achat,
+      prix_vente_ht,
+      prix_vente_ttc,
+      tva_pourcentage,
+      unite
+    } = req.body;
 
     const result = await pool.query(
       `INSERT INTO produits 
-       (reference, nom, description, prix_achat, prix_vente)
-       VALUES ($1,$2,$3,$4,$5)
+       (reference, nom, description, categorie, prix_achat, prix_vente_ht, prix_vente_ttc, tva_pourcentage, unite)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
-      [reference, nom, description, prix_achat, prix_vente]
+      [
+        reference,
+        nom,
+        description || null,
+        categorie || null,
+        prix_achat ?? 0,
+        prix_vente_ht ?? 0,
+        prix_vente_ttc || null,
+        tva_pourcentage ?? 19,
+        unite || "unité"
+      ]
     );
 
     res.status(201).json(result.rows[0]);
@@ -53,14 +73,39 @@ module.exports.createProduit = async (req, res) => {
 module.exports.updateProduit = async (req, res) => {
   try {
     const { id } = req.params;
-    const { reference, nom, description, prix_achat, prix_vente } = req.body;
+    const {
+      reference,
+      nom,
+      description,
+      categorie,
+      prix_achat,
+      prix_vente_ht,
+      prix_vente_ttc,
+      tva_pourcentage,
+      unite
+    } = req.body;
 
     const result = await pool.query(
       `UPDATE produits 
-       SET reference=$2, nom=$3, description=$4, prix_achat=$5, prix_vente=$6
+       SET reference=COALESCE($2, reference), nom=COALESCE($3, nom), description=COALESCE($4, description),
+           categorie=COALESCE($5, categorie), prix_achat=COALESCE($6, prix_achat),
+           prix_vente_ht=COALESCE($7, prix_vente_ht), prix_vente_ttc=COALESCE($8, prix_vente_ttc),
+           tva_pourcentage=COALESCE($9, tva_pourcentage), unite=COALESCE($10, unite),
+           updated_at=CURRENT_TIMESTAMP
        WHERE id=$1
        RETURNING *`,
-      [id, reference, nom, description, prix_achat, prix_vente]
+      [
+        id,
+        reference,
+        nom,
+        description,
+        categorie,
+        prix_achat,
+        prix_vente_ht,
+        prix_vente_ttc,
+        tva_pourcentage,
+        unite
+      ]
     );
 
     if (result.rows.length === 0)

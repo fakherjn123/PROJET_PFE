@@ -4,7 +4,7 @@ const { pool } = require("../db/db");
 module.exports.GetAllCars = async (req, res) => {
   try {
     const query = `
-      SELECT c.*, u.nom as owner_nom, u.email as owner_email 
+      SELECT c.*, u.username as owner_nom, u.email as owner_email 
       FROM cars c 
       LEFT JOIN users u ON c.owner_id = u.id
       WHERE c.is_active = true
@@ -64,7 +64,7 @@ module.exports.getCarById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      `SELECT c.*, u.nom as owner_nom, u.email as owner_email 
+      `SELECT c.*, u.username as owner_nom, u.email as owner_email 
        FROM cars c 
        LEFT JOIN users u ON c.owner_id = u.id 
        WHERE c.id = $1`,
