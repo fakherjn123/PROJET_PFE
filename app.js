@@ -6,10 +6,10 @@ var logger = require("morgan");
 const cors = require("cors");
 const http = require("http");
 
-// Database connection - CORRECTION: import correct
+// Database
 const { connectToPostgres } = require("./db");
 
-// Import routers
+// Routers
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/usersRouter");
 var produitsRouter = require("./routes/produitsRouter");
@@ -26,15 +26,26 @@ require("dotenv").config();
 
 var app = express();
 
-// Middlewares
-app.use(cors());
+/* =======================
+   MIDDLEWARES
+======================= */
+
+// CORS (sans frontend – Postman)
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Routes
+/* =======================
+   ROUTES
+======================= */
+
 app.use("/", indexRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/produits", produitsRouter);
@@ -47,28 +58,34 @@ app.use("/api/clients", clientsRouter);
 app.use("/api/fournisseurs", fournisseursRouter);
 app.use("/api/entrepots", entrepotsRouter);
 
-// catch 404 and forward to error handler
+/* =======================
+   ERRORS
+======================= */
+
+// 404
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// Error handler
 app.use(function (err, req, res, next) {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
-
   res.status(err.status || 500);
-  res.json({ error: err.message });
+  res.json({
+    message: err.message,
+    error: process.env.NODE_ENV === "development" ? err : {}
+  });
 });
 
-const server = http.createServer(app);
-const PORT = process.env.Port || 5000;
+/* =======================
+   SERVER
+======================= */
 
+const PORT = process.env.PORT || 5000;
+
+const server = http.createServer(app);
 server.listen(PORT, () => {
   connectToPostgres();
   console.log(`🚀 BMZ CRM Server running on port ${PORT}`);
-  console.log(`📊 Database: PostgreSQL`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;

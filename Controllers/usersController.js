@@ -100,10 +100,15 @@ module.exports.loginUser = async (req, res) => {
 };
 
 // Logout
-module.exports.logout = async (req, res) => {
-  res.cookie("jwt_Token", "", { httpOnly: true, maxAge: 1 });
+module.exports.logout = (req, res) => {
+  res.clearCookie("jwt_Token", {
+    httpOnly: true,
+    sameSite: "strict"
+  });
+
   res.status(200).json({ message: "Déconnexion réussie" });
 };
+
 
 // Update user
 module.exports.updateUser = async (req, res) => {
